@@ -21,13 +21,13 @@ dev:
 # Build the application
 build:
 	@echo "Building application..."
-	CGO_ENABLED=0 go build -ldflags="-w -s" -o bin/server src/main.go
+	go build -o bin/server src/main.go
 	@echo "Build completed: bin/server"
 
 # Run the built application
 run:
 	@echo "Running application..."
-	CGO_ENABLED=0 go run -ldflags="-w -s" src/main.go
+	go run src/main.go
 
 # Run the pre-built binary
 run-binary:

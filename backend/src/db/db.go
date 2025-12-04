@@ -4,53 +4,66 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
+	"strings"
 
 	"gorm.io/driver/postgres"
+	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )
 
 var DB *gorm.DB
 
-// InitDB initializes the database connection
 func InitDB() error {
 	var err error
 
-	// Get database URL from environment
 	dbURL := os.Getenv("DATABASE_URL")
 	if dbURL == "" {
 		return fmt.Errorf("DATABASE_URL environment variable is not set")
 	}
 
-	// Configure GORM
 	config := &gorm.Config{
 		Logger: logger.Default.LogMode(logger.Info),
 	}
 
-	// Open database connection with GORM
-	DB, err = gorm.Open(postgres.Open(dbURL), config)
+	var dialector gorm.Dialector
+	if strings.HasPrefix(dbURL, "sqlite://") {
+		sqlitePath := strings.TrimPrefix(dbURL, "sqlite://")
+
+		dir := filepath.Dir(sqlitePath)
+		if dir != "" && dir != "." {
+			if err := os.MkdirAll(dir, 0755); err != nil {
+				return fmt.Errorf("failed to create database directory: %w", err)
+			}
+		}
+
+		dialector = sqlite.Open(sqlitePath)
+	} else if strings.HasPrefix(dbURL, "postgres://") || strings.HasPrefix(dbURL, "postgresql://") {
+		dialector = postgres.Open(dbURL)
+	} else {
+		return fmt.Errorf("unsupported database URL format: must start with sqlite://, postgres://, or postgresql://")
+	}
+
+	DB, err = gorm.Open(dialector, config)
 	if err != nil {
 		return fmt.Errorf("error opening database: %w", err)
 	}
 
-	// Get underlying SQL DB to configure connection pool
 	sqlDB, err := DB.DB()
 	if err != nil {
 		return fmt.Errorf("error getting underlying DB: %w", err)
 	}
 
-	// Set connection pool settings
 	sqlDB.SetMaxIdleConns(10)
 	sqlDB.SetMaxOpenConns(100)
 
-	// Test the connection
 	if err = sqlDB.Ping(); err != nil {
 		return fmt.Errorf("error connecting to database: %w", err)
 	}
 
 	log.Println("Database connection established successfully")
 
-	// Run migrations
 	if err = Migrate(); err != nil {
 		return fmt.Errorf("error running migrations: %w", err)
 	}
