@@ -8,6 +8,8 @@ const Sidebar = () => {
     { icon: Users, label: "Borrowers", active: false },
     { icon: FileText, label: "Reports", active: false },
     { icon: Settings, label: "Settings", active: false },
+    {icon: Settings, label: "Deposits", active: false },
+    {icon: Settings, label: "Loan Application", active: false },
   ];
 
   return (
