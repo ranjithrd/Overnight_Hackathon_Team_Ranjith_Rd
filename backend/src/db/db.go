@@ -70,6 +70,7 @@ type User struct {
 	PhoneNumber    string `gorm:"uniqueIndex;not null"`
 	Name           string `gorm:"not null"`
 	Email          string `gorm:"index"`
+	Role           string `gorm:"type:varchar(20);default:'member';not null;index"`
 	SavingsBalance int    `gorm:"default:0;not null"`
 	SharesBalance  int    `gorm:"default:0;not null"`
 	IsActive       bool   `gorm:"default:true;not null"`
@@ -110,6 +111,7 @@ type Loan struct {
 	Duration           int     `gorm:"not null"`
 	InterestRate       float64 `gorm:"type:decimal(5,2);not null"`
 	Status             string  `gorm:"type:varchar(50);default:'Requested';not null;index"`
+	Reason             string  `gorm:"type:text"`
 	DisbursedAt        *int64
 	PaidOffAt          *int64
 	MonthlyPayment     int           `gorm:"default:0"`
@@ -139,6 +141,13 @@ type Deposit struct {
 	Amount        int    `gorm:"not null"`
 	Status        string `gorm:"type:varchar(50);default:'pending';not null;index"`
 	Reference     string `gorm:"index"`
+}
+
+type InterestRate struct {
+	gorm.Model
+	DurationMonths int     `gorm:"uniqueIndex;not null"`
+	Rate           float64 `gorm:"type:decimal(5,2);not null"`
+	EffectiveFrom  int64   `gorm:"not null"`
 }
 
 type Block struct {
@@ -172,6 +181,7 @@ func Migrate() error {
 		&Loan{},
 		&LoanPayment{},
 		&Deposit{},
+		&InterestRate{},
 		&Block{},
 		&Session{},
 	)

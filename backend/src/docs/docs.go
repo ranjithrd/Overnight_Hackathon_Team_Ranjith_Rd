@@ -178,6 +178,550 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/deposit": {
+            "post": {
+                "security": [
+                    {
+                        "SessionAuth": []
+                    }
+                ],
+                "description": "Manager adds a deposit, creates transaction \u0026 block, updates user savings balance",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "deposits"
+                ],
+                "summary": "Add a deposit (manager)",
+                "parameters": [
+                    {
+                        "description": "Add Deposit Request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.AddDepositRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.AddDepositResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/home": {
+            "get": {
+                "security": [
+                    {
+                        "SessionAuth": []
+                    }
+                ],
+                "description": "Returns financial statistics based on user role (member, manager, auditor)",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "home"
+                ],
+                "summary": "Get home dashboard statistics",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.HomeResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/interest_rates": {
+            "get": {
+                "description": "Returns list of all interest rates by duration",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "interest-rates"
+                ],
+                "summary": "Get all interest rates",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.InterestRateResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/interest_rates/set": {
+            "post": {
+                "security": [
+                    {
+                        "SessionAuth": []
+                    }
+                ],
+                "description": "Manager sets or updates interest rate for a specific loan duration",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "interest-rates"
+                ],
+                "summary": "Set interest rate for duration (manager)",
+                "parameters": [
+                    {
+                        "description": "Set Interest Rate Request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.SetInterestRateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "boolean"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/loans/add": {
+            "post": {
+                "security": [
+                    {
+                        "SessionAuth": []
+                    }
+                ],
+                "description": "Manager directly adds a loan with all details",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "loans"
+                ],
+                "summary": "Add a new loan directly (manager)",
+                "parameters": [
+                    {
+                        "description": "Add Loan Request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.AddLoanRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.RequestLoanResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/loans/manager": {
+            "get": {
+                "security": [
+                    {
+                        "SessionAuth": []
+                    }
+                ],
+                "description": "Returns requested loans first, then all other loans",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "loans"
+                ],
+                "summary": "Get all loans (manager view)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ManagerLoansResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/loans/member": {
+            "get": {
+                "security": [
+                    {
+                        "SessionAuth": []
+                    }
+                ],
+                "description": "Returns list of loans for the authenticated member with summary statistics",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "loans"
+                ],
+                "summary": "Get member's loans",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.MemberLoansResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/loans/request": {
+            "post": {
+                "security": [
+                    {
+                        "SessionAuth": []
+                    }
+                ],
+                "description": "Member requests a loan with amount, duration, and reason",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "loans"
+                ],
+                "summary": "Request a new loan (member)",
+                "parameters": [
+                    {
+                        "description": "Loan Request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.RequestLoanRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.RequestLoanResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/loans/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "SessionAuth": []
+                    }
+                ],
+                "description": "Returns detailed information about a specific loan (manager only)",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "loans"
+                ],
+                "summary": "Get loan details by ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Loan ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.LoanDetailResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/loans/{id}/update_status": {
+            "post": {
+                "security": [
+                    {
+                        "SessionAuth": []
+                    }
+                ],
+                "description": "Manager approves or rejects a loan. On approval, sets interest rate and monthly payment",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "loans"
+                ],
+                "summary": "Update loan status (approve/reject)",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Loan ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Update Status Request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.UpdateLoanStatusRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.UpdateLoanStatusResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/health": {
             "get": {
                 "description": "Returns health status of the API",
@@ -200,12 +744,247 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "handlers.AddDepositRequest": {
+            "type": "object",
+            "required": [
+                "amount",
+                "user_id"
+            ],
+            "properties": {
+                "amount": {
+                    "type": "integer",
+                    "example": 10000
+                },
+                "reference": {
+                    "type": "string",
+                    "example": "BANK-TX-12345"
+                },
+                "user_id": {
+                    "type": "integer",
+                    "example": 1
+                }
+            }
+        },
+        "handlers.AddDepositResponse": {
+            "type": "object",
+            "properties": {
+                "ok": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "transaction_id": {
+                    "type": "string",
+                    "example": "TXN-1234567890"
+                }
+            }
+        },
+        "handlers.AddLoanRequest": {
+            "type": "object",
+            "required": [
+                "amount",
+                "borrower_id",
+                "duration",
+                "interest_rate"
+            ],
+            "properties": {
+                "amount": {
+                    "type": "integer",
+                    "example": 100000
+                },
+                "borrower_id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "duration": {
+                    "type": "integer",
+                    "example": 12
+                },
+                "interest_rate": {
+                    "type": "number",
+                    "example": 12.5
+                },
+                "reason": {
+                    "type": "string",
+                    "example": "Home renovation"
+                },
+                "status": {
+                    "type": "string",
+                    "example": "Approved"
+                }
+            }
+        },
+        "handlers.BorrowerInfo": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "name": {
+                    "type": "string",
+                    "example": "John Doe"
+                },
+                "phone_number": {
+                    "type": "string",
+                    "example": "+1234567890"
+                }
+            }
+        },
         "handlers.ErrorResponse": {
             "type": "object",
             "properties": {
                 "error": {
                     "type": "string",
                     "example": "Invalid request"
+                }
+            }
+        },
+        "handlers.HomeResponse": {
+            "type": "object",
+            "properties": {
+                "dividend_expected": {
+                    "type": "integer",
+                    "example": 5000
+                },
+                "role": {
+                    "type": "string",
+                    "example": "member"
+                },
+                "total_assets": {
+                    "type": "integer",
+                    "example": 1000000
+                },
+                "total_loans": {
+                    "type": "integer",
+                    "example": 500000
+                },
+                "total_profit": {
+                    "type": "integer",
+                    "example": 50000
+                }
+            }
+        },
+        "handlers.InterestRateItem": {
+            "type": "object",
+            "properties": {
+                "duration_months": {
+                    "type": "integer",
+                    "example": 12
+                },
+                "effective_from": {
+                    "type": "string",
+                    "example": "2025-01-01T00:00:00Z"
+                },
+                "rate": {
+                    "type": "number",
+                    "example": 12.5
+                }
+            }
+        },
+        "handlers.InterestRateResponse": {
+            "type": "object",
+            "properties": {
+                "rates": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/handlers.InterestRateItem"
+                    }
+                }
+            }
+        },
+        "handlers.LoanDetailResponse": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "integer",
+                    "example": 100000
+                },
+                "approved_by": {
+                    "$ref": "#/definitions/handlers.ManagerInfo"
+                },
+                "borrower": {
+                    "$ref": "#/definitions/handlers.BorrowerInfo"
+                },
+                "created_at": {
+                    "type": "string",
+                    "example": "2025-01-15T10:00:00Z"
+                },
+                "duration": {
+                    "type": "integer",
+                    "example": 12
+                },
+                "id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "interest_rate": {
+                    "type": "number",
+                    "example": 12.5
+                },
+                "monthly_payment": {
+                    "type": "integer",
+                    "example": 9000
+                },
+                "outstanding_balance": {
+                    "type": "integer",
+                    "example": 95000
+                },
+                "principal": {
+                    "type": "integer",
+                    "example": 100000
+                },
+                "reason": {
+                    "type": "string",
+                    "example": "Home renovation"
+                },
+                "status": {
+                    "type": "string",
+                    "example": "Approved"
+                }
+            }
+        },
+        "handlers.LoanSummary": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "integer",
+                    "example": 100000
+                },
+                "created_at": {
+                    "type": "string",
+                    "example": "2025-01-15T10:00:00Z"
+                },
+                "duration": {
+                    "type": "integer",
+                    "example": 12
+                },
+                "id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "interest_rate": {
+                    "type": "number",
+                    "example": 12.5
+                },
+                "monthly_payment": {
+                    "type": "integer",
+                    "example": 9000
+                },
+                "outstanding_balance": {
+                    "type": "integer",
+                    "example": 95000
+                },
+                "principal": {
+                    "type": "integer",
+                    "example": 100000
+                },
+                "reason": {
+                    "type": "string",
+                    "example": "Home renovation"
+                },
+                "status": {
+                    "type": "string",
+                    "example": "Approved"
                 }
             }
         },
@@ -231,6 +1010,36 @@ const docTemplate = `{
                 "request_id": {
                     "type": "integer",
                     "example": 123
+                }
+            }
+        },
+        "handlers.ManagerInfo": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer",
+                    "example": 2
+                },
+                "name": {
+                    "type": "string",
+                    "example": "Jane Manager"
+                }
+            }
+        },
+        "handlers.ManagerLoansResponse": {
+            "type": "object",
+            "properties": {
+                "other_loans": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/handlers.LoanSummary"
+                    }
+                },
+                "requested_loans": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/handlers.LoanSummary"
+                    }
                 }
             }
         },
@@ -264,6 +1073,102 @@ const docTemplate = `{
                 "shares_balance": {
                     "type": "integer",
                     "example": 1000
+                }
+            }
+        },
+        "handlers.MemberLoansResponse": {
+            "type": "object",
+            "properties": {
+                "loans": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/handlers.LoanSummary"
+                    }
+                },
+                "monthly_payment_total": {
+                    "type": "integer",
+                    "example": 9000
+                },
+                "total_due": {
+                    "type": "integer",
+                    "example": 95000
+                }
+            }
+        },
+        "handlers.RequestLoanRequest": {
+            "type": "object",
+            "required": [
+                "amount",
+                "duration",
+                "reason"
+            ],
+            "properties": {
+                "amount": {
+                    "type": "integer",
+                    "example": 100000
+                },
+                "duration": {
+                    "type": "integer",
+                    "example": 12
+                },
+                "reason": {
+                    "type": "string",
+                    "example": "Home renovation"
+                }
+            }
+        },
+        "handlers.RequestLoanResponse": {
+            "type": "object",
+            "properties": {
+                "loan_id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "ok": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "handlers.SetInterestRateRequest": {
+            "type": "object",
+            "required": [
+                "duration_months",
+                "rate"
+            ],
+            "properties": {
+                "duration_months": {
+                    "type": "integer",
+                    "example": 12
+                },
+                "rate": {
+                    "type": "number",
+                    "example": 12.5
+                }
+            }
+        },
+        "handlers.UpdateLoanStatusRequest": {
+            "type": "object",
+            "required": [
+                "status"
+            ],
+            "properties": {
+                "status": {
+                    "type": "string",
+                    "example": "Approved"
+                }
+            }
+        },
+        "handlers.UpdateLoanStatusResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "example": "Loan approved successfully"
+                },
+                "ok": {
+                    "type": "boolean",
+                    "example": true
                 }
             }
         },

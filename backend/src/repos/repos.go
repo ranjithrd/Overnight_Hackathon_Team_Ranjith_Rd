@@ -138,7 +138,125 @@ type UserWithSession struct {
 	PhoneNumber    string
 	Name           string
 	Email          string
+	Role           string
 	SavingsBalance int
 	SharesBalance  int
 	IsActive       bool
+}
+
+type LoanRepo struct{}
+
+func (LoanRepo) Create(loan *db.Loan) error {
+	return db.DB.Create(loan).Error
+}
+
+func (LoanRepo) GetByID(loanID uint) (*db.Loan, error) {
+	var loan db.Loan
+	err := db.DB.Preload("Borrower").Preload("ApprovedBy").First(&loan, loanID).Error
+	if err != nil {
+		return nil, err
+	}
+	return &loan, nil
+}
+
+func (LoanRepo) GetByBorrowerID(borrowerID uint) ([]db.Loan, error) {
+	var loans []db.Loan
+	err := db.DB.Where("borrower_id = ?", borrowerID).Preload("Payments").Find(&loans).Error
+	return loans, err
+}
+
+func (LoanRepo) GetByStatus(status string) ([]db.Loan, error) {
+	var loans []db.Loan
+	err := db.DB.Where("status = ?", status).Preload("Borrower").Preload("ApprovedBy").Find(&loans).Error
+	return loans, err
+}
+
+func (LoanRepo) GetAll() ([]db.Loan, error) {
+	var loans []db.Loan
+	err := db.DB.Preload("Borrower").Preload("ApprovedBy").Find(&loans).Error
+	return loans, err
+}
+
+func (LoanRepo) UpdateStatus(loanID uint, status string, approvedByID uint, interestRate float64, monthlyPayment int) error {
+	updates := map[string]interface{}{
+		"status": status,
+	}
+	if status == "Approved" {
+		updates["approved_by_id"] = approvedByID
+		updates["interest_rate"] = interestRate
+		updates["monthly_payment"] = monthlyPayment
+	}
+	return db.DB.Model(&db.Loan{}).Where("id = ?", loanID).Updates(updates).Error
+}
+
+func (LoanRepo) GetTotalLoansAmount() (int64, error) {
+	var total int64
+	err := db.DB.Model(&db.Loan{}).Select("COALESCE(SUM(amount), 0)").Where("status IN ?", []string{"Approved", "Disbursed"}).Scan(&total).Error
+	return total, err
+}
+
+func (LoanRepo) GetTotalProfit() (int64, error) {
+	var totalInterest int64
+	err := db.DB.Model(&db.LoanPayment{}).Select("COALESCE(SUM(interest_amount), 0)").Scan(&totalInterest).Error
+	return totalInterest, err
+}
+
+type DepositRepo struct{}
+
+func (DepositRepo) Create(deposit *db.Deposit) error {
+	return db.DB.Create(deposit).Error
+}
+
+func (DepositRepo) UpdateUserBalance(userID uint, amount int) error {
+	return db.DB.Model(&db.User{}).Where("id = ?", userID).UpdateColumn("savings_balance", db.DB.Raw("savings_balance + ?", amount)).Error
+}
+
+type InterestRateRepo struct{}
+
+func (InterestRateRepo) Create(rate *db.InterestRate) error {
+	return db.DB.Create(rate).Error
+}
+
+func (InterestRateRepo) GetAll() ([]db.InterestRate, error) {
+	var rates []db.InterestRate
+	err := db.DB.Order("duration_months ASC").Find(&rates).Error
+	return rates, err
+}
+
+func (InterestRateRepo) GetByDuration(durationMonths int) (*db.InterestRate, error) {
+	var rate db.InterestRate
+	err := db.DB.Where("duration_months = ?", durationMonths).Order("effective_from DESC").First(&rate).Error
+	if err != nil {
+		return nil, err
+	}
+	return &rate, nil
+}
+
+func (InterestRateRepo) Upsert(rate *db.InterestRate) error {
+	var existing db.InterestRate
+	err := db.DB.Where("duration_months = ?", rate.DurationMonths).First(&existing).Error
+	if err != nil {
+		return db.DB.Create(rate).Error
+	}
+	return db.DB.Model(&existing).Updates(rate).Error
+}
+
+type StatsRepo struct{}
+
+func (StatsRepo) GetTotalAssets() (int64, error) {
+	var total int64
+	err := db.DB.Model(&db.User{}).Select("COALESCE(SUM(savings_balance + shares_balance), 0)").Scan(&total).Error
+	return total, err
+}
+
+func (StatsRepo) GetTotalSharesBalance() (int64, error) {
+	var total int64
+	err := db.DB.Model(&db.User{}).Select("COALESCE(SUM(shares_balance), 0)").Scan(&total).Error
+	return total, err
+}
+
+func (StatsRepo) GetMemberCount() (int64, error) {
+	var count int64
+	err := db.DB.Model(&db.User{}).Where("role = ?", "member").Count(&count).Error
+	return count, err
 }
