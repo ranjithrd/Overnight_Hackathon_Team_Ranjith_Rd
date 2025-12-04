@@ -86,7 +86,7 @@ func (OTP) Verify(otpID uint, otpCode string) error {
 
 func (OTP) CountRecentByPhoneNumber(phoneNumber string, sinceMinutes int) (int64, error) {
 	var count int64
-	since := time.Now().Add(-time.Duration(sinceMinutes) * time.Minute).Unix()
+	since := time.Now().Add(-time.Duration(sinceMinutes) * time.Minute)
 
 	err := db.DB.Model(&db.UserOtp{}).
 		Joins("JOIN users ON users.id = user_otps.user_id").
