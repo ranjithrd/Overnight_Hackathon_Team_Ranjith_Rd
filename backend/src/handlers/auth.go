@@ -202,6 +202,7 @@ type MeResponse struct {
 	SavingsBalance int    `json:"savings_balance" example:"5000"`
 	SharesBalance  int    `json:"shares_balance" example:"1000"`
 	IsActive       bool   `json:"is_active" example:"true"`
+	Role           string `json:"role" example:"member"`
 }
 
 // Me godoc
@@ -228,6 +229,7 @@ func Me(c echo.Context) error {
 		SavingsBalance: u.SavingsBalance,
 		SharesBalance:  u.SharesBalance,
 		IsActive:       u.IsActive,
+		Role:           u.Role,
 	})
 }
 
