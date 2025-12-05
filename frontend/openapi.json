@@ -1,0 +1,2159 @@
+{
+    "schemes": ["http","https"],
+    "swagger": "2.0",
+    "info": {
+        "description": "API for 8MH cooperative banking system with blockchain verification",
+        "title": "8MH API",
+        "termsOfService": "http://swagger.io/terms/",
+        "contact": {
+            "name": "API Support",
+            "email": "support@8mh.com"
+        },
+        "license": {
+            "name": "MIT",
+            "url": "https://opensource.org/licenses/MIT"
+        },
+        "version": "1.0"
+    },
+    "host": "localhost:8080",
+    "basePath": "/",
+    "paths": {
+        "/": {
+            "get": {
+                "description": "Returns API status and version",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "general"
+                ],
+                "summary": "API Index",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/routes.IndexResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/audit/blockchain/status": {
+            "get": {
+                "security": [
+                    {
+                        "SessionAuth": []
+                    }
+                ],
+                "description": "Returns overall blockchain integrity and verification statistics",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "audit"
+                ],
+                "summary": "Get Blockchain Verification Status",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.BlockchainStatusResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/audit/loans/outstanding": {
+            "get": {
+                "security": [
+                    {
+                        "SessionAuth": []
+                    }
+                ],
+                "description": "Returns all currently outstanding loans with borrower details",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "audit"
+                ],
+                "summary": "Get Outstanding Loans",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Filter by status",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Sort field (amount, created_at, borrower_name)",
+                        "name": "sort",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Sort order (asc, desc)",
+                        "name": "order",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.OutstandingLoansResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/audit/summary": {
+            "get": {
+                "security": [
+                    {
+                        "SessionAuth": []
+                    }
+                ],
+                "description": "Returns high-level financial totals for audit purposes",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "audit"
+                ],
+                "summary": "Get Financial Summary",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.FinancialSummaryResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/audit/transactions": {
+            "get": {
+                "security": [
+                    {
+                        "SessionAuth": []
+                    }
+                ],
+                "description": "Returns all transactions for audit trail with filtering options",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "audit"
+                ],
+                "summary": "Get All Transactions",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Filter by transaction type",
+                        "name": "type",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter from date (ISO 8601)",
+                        "name": "start_date",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter to date (ISO 8601)",
+                        "name": "end_date",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Filter by user ID",
+                        "name": "user_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Show only blockchain-verified",
+                        "name": "verified_only",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Records per page (default 100)",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Pagination offset (default 0)",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.AuditTransactionsResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/audit/transactions/export": {
+            "get": {
+                "security": [
+                    {
+                        "SessionAuth": []
+                    }
+                ],
+                "description": "Exports all transactions to Excel or CSV format with blockchain verification status",
+                "produces": [
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    "text/csv"
+                ],
+                "tags": [
+                    "audit"
+                ],
+                "summary": "Export Transactions to Excel/CSV",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Filter by transaction type",
+                        "name": "type",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter from date (ISO 8601)",
+                        "name": "start_date",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter to date (ISO 8601)",
+                        "name": "end_date",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Filter by user ID",
+                        "name": "user_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Export format (excel, csv)",
+                        "name": "format",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Excel or CSV file",
+                        "schema": {
+                            "type": "file"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/audit/users/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "SessionAuth": []
+                    }
+                ],
+                "description": "Returns detailed audit report for a specific user",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "audit"
+                ],
+                "summary": "Get User Audit Report",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "User ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.UserAuditReportResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/auth/login": {
+            "post": {
+                "description": "Authenticate with phone number and password",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Login with phone and password",
+                "parameters": [
+                    {
+                        "description": "Login Request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.LoginRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.LoginResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/auth/logout": {
+            "post": {
+                "security": [
+                    {
+                        "SessionAuth": []
+                    }
+                ],
+                "description": "Logout and invalidate session",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Logout",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.LoginResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/auth/me": {
+            "get": {
+                "security": [
+                    {
+                        "SessionAuth": []
+                    }
+                ],
+                "description": "Get authenticated user's profile and account information",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Get current user information",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.MeResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/auth/verify": {
+            "post": {
+                "description": "Verify the OTP code and create an authenticated session",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Verify OTP and create session",
+                "parameters": [
+                    {
+                        "description": "Verify Request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.VerifyRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.VerifyResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Invalid OTP or expired",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.VerifyResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/deposit": {
+            "post": {
+                "security": [
+                    {
+                        "SessionAuth": []
+                    }
+                ],
+                "description": "Manager adds a deposit, creates transaction \u0026 block, updates user savings balance",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "deposits"
+                ],
+                "summary": "Add a deposit (manager)",
+                "parameters": [
+                    {
+                        "description": "Add Deposit Request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.AddDepositRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.AddDepositResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/home": {
+            "get": {
+                "security": [
+                    {
+                        "SessionAuth": []
+                    }
+                ],
+                "description": "Returns financial statistics based on user role (member, manager, auditor)",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "home"
+                ],
+                "summary": "Get home dashboard statistics",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.HomeResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/interest_rates": {
+            "get": {
+                "description": "Returns list of all interest rates by duration",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "interest-rates"
+                ],
+                "summary": "Get all interest rates",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.InterestRateResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/interest_rates/set": {
+            "post": {
+                "security": [
+                    {
+                        "SessionAuth": []
+                    }
+                ],
+                "description": "Manager sets or updates interest rate for a specific loan duration",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "interest-rates"
+                ],
+                "summary": "Set interest rate for duration (manager)",
+                "parameters": [
+                    {
+                        "description": "Set Interest Rate Request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.SetInterestRateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "boolean"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/loans/add": {
+            "post": {
+                "security": [
+                    {
+                        "SessionAuth": []
+                    }
+                ],
+                "description": "Manager directly adds a loan with all details",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "loans"
+                ],
+                "summary": "Add a new loan directly (manager)",
+                "parameters": [
+                    {
+                        "description": "Add Loan Request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.AddLoanRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.RequestLoanResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/loans/manager": {
+            "get": {
+                "security": [
+                    {
+                        "SessionAuth": []
+                    }
+                ],
+                "description": "Returns requested loans first, then all other loans",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "loans"
+                ],
+                "summary": "Get all loans (manager view)",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ManagerLoansResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/loans/member": {
+            "get": {
+                "security": [
+                    {
+                        "SessionAuth": []
+                    }
+                ],
+                "description": "Returns list of loans for the authenticated member with summary statistics",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "loans"
+                ],
+                "summary": "Get member's loans",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.MemberLoansResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/loans/payment": {
+            "post": {
+                "security": [
+                    {
+                        "SessionAuth": []
+                    }
+                ],
+                "description": "Member makes a payment towards their loan, creates transaction and blockchain block",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "loans"
+                ],
+                "summary": "Make a loan payment",
+                "parameters": [
+                    {
+                        "description": "Make Payment Request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.MakePaymentRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.MakePaymentResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/loans/request": {
+            "post": {
+                "security": [
+                    {
+                        "SessionAuth": []
+                    }
+                ],
+                "description": "Member requests a loan with amount, duration, and reason",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "loans"
+                ],
+                "summary": "Request a new loan (member)",
+                "parameters": [
+                    {
+                        "description": "Loan Request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.RequestLoanRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.RequestLoanResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/loans/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "SessionAuth": []
+                    }
+                ],
+                "description": "Returns detailed information about a specific loan (manager only)",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "loans"
+                ],
+                "summary": "Get loan details by ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Loan ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.LoanDetailResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/loans/{id}/update_status": {
+            "post": {
+                "security": [
+                    {
+                        "SessionAuth": []
+                    }
+                ],
+                "description": "Manager approves or rejects a loan. On approval, sets interest rate and monthly payment",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "loans"
+                ],
+                "summary": "Update loan status (approve/reject)",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Loan ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Update Status Request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.UpdateLoanStatusRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.UpdateLoanStatusResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/users": {
+            "get": {
+                "security": [
+                    {
+                        "SessionAuth": []
+                    }
+                ],
+                "description": "Get list of all users, optionally filter by name or phone number",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "List/Search Users",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Search by name or phone number",
+                        "name": "search",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.UserListResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/users/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "SessionAuth": []
+                    }
+                ],
+                "description": "Get detailed information about a specific user including balances",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Get User Details",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "User ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.UserDetailResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/health": {
+            "get": {
+                "description": "Returns health status of the API",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "general"
+                ],
+                "summary": "Health Check",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/routes.HealthResponse"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "handlers.AddDepositRequest": {
+            "type": "object",
+            "required": [
+                "amount",
+                "user_id"
+            ],
+            "properties": {
+                "amount": {
+                    "type": "integer",
+                    "example": 10000
+                },
+                "reference": {
+                    "type": "string",
+                    "example": "BANK-TX-12345"
+                },
+                "user_id": {
+                    "type": "integer",
+                    "example": 1
+                }
+            }
+        },
+        "handlers.AddDepositResponse": {
+            "type": "object",
+            "properties": {
+                "ok": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "transaction_id": {
+                    "type": "string",
+                    "example": "TXN-1234567890"
+                }
+            }
+        },
+        "handlers.AddLoanRequest": {
+            "type": "object",
+            "required": [
+                "amount",
+                "borrower_id",
+                "duration",
+                "interest_rate"
+            ],
+            "properties": {
+                "amount": {
+                    "type": "integer",
+                    "example": 100000
+                },
+                "borrower_id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "duration": {
+                    "type": "integer",
+                    "example": 12
+                },
+                "interest_rate": {
+                    "type": "number",
+                    "example": 12.5
+                },
+                "reason": {
+                    "type": "string",
+                    "example": "Home renovation"
+                },
+                "status": {
+                    "type": "string",
+                    "example": "Approved"
+                }
+            }
+        },
+        "handlers.AuditTransactionItem": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "integer",
+                    "example": 10000
+                },
+                "blockchain_block_number": {
+                    "type": "integer",
+                    "example": 12345
+                },
+                "blockchain_hash": {
+                    "type": "string",
+                    "example": "0xdef456..."
+                },
+                "blockchain_verified": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "loan_id": {
+                    "type": "integer",
+                    "example": 123
+                },
+                "reference": {
+                    "type": "string",
+                    "example": "BANK-TX-12345"
+                },
+                "timestamp": {
+                    "type": "string",
+                    "example": "2025-12-01T14:30:00Z"
+                },
+                "transaction_id": {
+                    "type": "string",
+                    "example": "TXN-1001"
+                },
+                "transaction_type": {
+                    "type": "string",
+                    "example": "deposit"
+                },
+                "user_id": {
+                    "type": "integer",
+                    "example": 45
+                },
+                "user_name": {
+                    "type": "string",
+                    "example": "John Doe"
+                },
+                "user_phone": {
+                    "type": "string",
+                    "example": "+1234567890"
+                },
+                "verification_timestamp": {
+                    "type": "string",
+                    "example": "2025-12-01T14:30:05Z"
+                }
+            }
+        },
+        "handlers.AuditTransactionsResponse": {
+            "type": "object",
+            "properties": {
+                "blockchain_verified_count": {
+                    "type": "integer",
+                    "example": 3
+                },
+                "blockchain_verified_percentage": {
+                    "type": "number",
+                    "example": 100
+                },
+                "total_amount": {
+                    "type": "integer",
+                    "example": 65000
+                },
+                "total_count": {
+                    "type": "integer",
+                    "example": 3
+                },
+                "transactions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/handlers.AuditTransactionItem"
+                    }
+                }
+            }
+        },
+        "handlers.BlockchainStatusResponse": {
+            "type": "object",
+            "properties": {
+                "blockchain_health": {
+                    "type": "string",
+                    "example": "healthy"
+                },
+                "blockchain_integrity": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "last_block_number": {
+                    "type": "integer",
+                    "example": 15000
+                },
+                "last_verification_timestamp": {
+                    "type": "string",
+                    "example": "2025-12-05T11:45:00Z"
+                },
+                "pending_verifications": {
+                    "type": "integer",
+                    "example": 0
+                },
+                "total_transactions": {
+                    "type": "integer",
+                    "example": 1500
+                },
+                "unverified_transactions": {
+                    "type": "integer",
+                    "example": 0
+                },
+                "verification_rate": {
+                    "type": "number",
+                    "example": 100
+                },
+                "verified_transactions": {
+                    "type": "integer",
+                    "example": 1500
+                }
+            }
+        },
+        "handlers.BorrowerInfo": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "name": {
+                    "type": "string",
+                    "example": "John Doe"
+                },
+                "phone_number": {
+                    "type": "string",
+                    "example": "+1234567890"
+                }
+            }
+        },
+        "handlers.ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string",
+                    "example": "Invalid request"
+                }
+            }
+        },
+        "handlers.FinancialSummaryResponse": {
+            "type": "object",
+            "properties": {
+                "blockchain_integrity": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "last_blockchain_verification": {
+                    "type": "string",
+                    "example": "2025-12-05T10:30:00Z"
+                },
+                "total_assets": {
+                    "type": "integer",
+                    "example": 1500000
+                },
+                "total_deposits": {
+                    "type": "integer",
+                    "example": 1000000
+                },
+                "total_interest_earned": {
+                    "type": "integer",
+                    "example": 75000
+                },
+                "total_loans_disbursed": {
+                    "type": "integer",
+                    "example": 500000
+                },
+                "total_loans_outstanding": {
+                    "type": "integer",
+                    "example": 300000
+                },
+                "total_loans_repaid": {
+                    "type": "integer",
+                    "example": 200000
+                },
+                "total_members": {
+                    "type": "integer",
+                    "example": 150
+                },
+                "total_profit": {
+                    "type": "integer",
+                    "example": 50000
+                }
+            }
+        },
+        "handlers.HomeResponse": {
+            "type": "object",
+            "properties": {
+                "blockchain_integrity": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "dividend_expected": {
+                    "type": "integer",
+                    "example": 5000
+                },
+                "role": {
+                    "type": "string",
+                    "example": "member"
+                },
+                "total_assets": {
+                    "type": "integer",
+                    "example": 1000000
+                },
+                "total_loans": {
+                    "type": "integer",
+                    "example": 500000
+                },
+                "total_profit": {
+                    "type": "integer",
+                    "example": 50000
+                }
+            }
+        },
+        "handlers.InterestRateItem": {
+            "type": "object",
+            "properties": {
+                "duration_months": {
+                    "type": "integer",
+                    "example": 12
+                },
+                "effective_from": {
+                    "type": "string",
+                    "example": "2025-01-01T00:00:00Z"
+                },
+                "rate": {
+                    "type": "number",
+                    "example": 12.5
+                }
+            }
+        },
+        "handlers.InterestRateResponse": {
+            "type": "object",
+            "properties": {
+                "rates": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/handlers.InterestRateItem"
+                    }
+                }
+            }
+        },
+        "handlers.LoanDetailResponse": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "integer",
+                    "example": 100000
+                },
+                "approved_by": {
+                    "$ref": "#/definitions/handlers.ManagerInfo"
+                },
+                "borrower": {
+                    "$ref": "#/definitions/handlers.BorrowerInfo"
+                },
+                "created_at": {
+                    "type": "string",
+                    "example": "2025-01-15T10:00:00Z"
+                },
+                "duration": {
+                    "type": "integer",
+                    "example": 12
+                },
+                "id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "interest_rate": {
+                    "type": "number",
+                    "example": 12.5
+                },
+                "monthly_payment": {
+                    "type": "integer",
+                    "example": 9000
+                },
+                "outstanding_balance": {
+                    "type": "integer",
+                    "example": 95000
+                },
+                "principal": {
+                    "type": "integer",
+                    "example": 100000
+                },
+                "reason": {
+                    "type": "string",
+                    "example": "Home renovation"
+                },
+                "status": {
+                    "type": "string",
+                    "example": "Approved"
+                }
+            }
+        },
+        "handlers.LoanSummary": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "integer",
+                    "example": 100000
+                },
+                "created_at": {
+                    "type": "string",
+                    "example": "2025-01-15T10:00:00Z"
+                },
+                "duration": {
+                    "type": "integer",
+                    "example": 12
+                },
+                "id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "interest_rate": {
+                    "type": "number",
+                    "example": 12.5
+                },
+                "monthly_payment": {
+                    "type": "integer",
+                    "example": 9000
+                },
+                "outstanding_balance": {
+                    "type": "integer",
+                    "example": 95000
+                },
+                "principal": {
+                    "type": "integer",
+                    "example": 100000
+                },
+                "reason": {
+                    "type": "string",
+                    "example": "Home renovation"
+                },
+                "status": {
+                    "type": "string",
+                    "example": "Approved"
+                }
+            }
+        },
+        "handlers.LoginRequest": {
+            "type": "object",
+            "required": [
+                "password",
+                "phone_number"
+            ],
+            "properties": {
+                "password": {
+                    "type": "string",
+                    "example": "password123"
+                },
+                "phone_number": {
+                    "type": "string",
+                    "example": "+1234567890"
+                }
+            }
+        },
+        "handlers.LoginResponse": {
+            "type": "object",
+            "properties": {
+                "ok": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "handlers.MakePaymentRequest": {
+            "type": "object",
+            "required": [
+                "amount",
+                "interest_amount",
+                "loan_id",
+                "principal_amount"
+            ],
+            "properties": {
+                "amount": {
+                    "type": "integer",
+                    "example": 9000
+                },
+                "interest_amount": {
+                    "type": "integer",
+                    "example": 1000
+                },
+                "loan_id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "principal_amount": {
+                    "type": "integer",
+                    "example": 8000
+                }
+            }
+        },
+        "handlers.MakePaymentResponse": {
+            "type": "object",
+            "properties": {
+                "balance_after": {
+                    "type": "integer",
+                    "example": 86000
+                },
+                "ok": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "transaction_id": {
+                    "type": "string",
+                    "example": "TXN-1234567890"
+                }
+            }
+        },
+        "handlers.ManagerInfo": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer",
+                    "example": 2
+                },
+                "name": {
+                    "type": "string",
+                    "example": "Jane Manager"
+                }
+            }
+        },
+        "handlers.ManagerLoansResponse": {
+            "type": "object",
+            "properties": {
+                "other_loans": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/handlers.LoanSummary"
+                    }
+                },
+                "requested_loans": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/handlers.LoanSummary"
+                    }
+                }
+            }
+        },
+        "handlers.MeResponse": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string",
+                    "example": "john@example.com"
+                },
+                "id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "is_active": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "name": {
+                    "type": "string",
+                    "example": "John Doe"
+                },
+                "phone_number": {
+                    "type": "string",
+                    "example": "+1234567890"
+                },
+                "savings_balance": {
+                    "type": "integer",
+                    "example": 5000
+                },
+                "shares_balance": {
+                    "type": "integer",
+                    "example": 1000
+                }
+            }
+        },
+        "handlers.MemberLoansResponse": {
+            "type": "object",
+            "properties": {
+                "loans": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/handlers.LoanSummary"
+                    }
+                },
+                "monthly_payment_total": {
+                    "type": "integer",
+                    "example": 9000
+                },
+                "total_due": {
+                    "type": "integer",
+                    "example": 95000
+                }
+            }
+        },
+        "handlers.OutstandingLoanItem": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "integer",
+                    "example": 50000
+                },
+                "amount_outstanding": {
+                    "type": "integer",
+                    "example": 42000
+                },
+                "amount_repaid": {
+                    "type": "integer",
+                    "example": 10000
+                },
+                "blockchain_hash": {
+                    "type": "string",
+                    "example": "0xabc123..."
+                },
+                "blockchain_verified": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "borrower_id": {
+                    "type": "integer",
+                    "example": 45
+                },
+                "borrower_name": {
+                    "type": "string",
+                    "example": "John Doe"
+                },
+                "borrower_phone": {
+                    "type": "string",
+                    "example": "+1234567890"
+                },
+                "disbursed_date": {
+                    "type": "string",
+                    "example": "2025-11-01T00:00:00Z"
+                },
+                "duration_months": {
+                    "type": "integer",
+                    "example": 12
+                },
+                "expected_repayment_date": {
+                    "type": "string",
+                    "example": "2026-11-01T00:00:00Z"
+                },
+                "interest_rate": {
+                    "type": "number",
+                    "example": 4
+                },
+                "loan_id": {
+                    "type": "integer",
+                    "example": 123
+                },
+                "reason": {
+                    "type": "string",
+                    "example": "Home renovation"
+                },
+                "status": {
+                    "type": "string",
+                    "example": "Approved"
+                },
+                "total_repayment": {
+                    "type": "integer",
+                    "example": 52000
+                }
+            }
+        },
+        "handlers.OutstandingLoansResponse": {
+            "type": "object",
+            "properties": {
+                "outstanding_loans": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/handlers.OutstandingLoanItem"
+                    }
+                },
+                "total_count": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "total_outstanding_amount": {
+                    "type": "integer",
+                    "example": 42000
+                }
+            }
+        },
+        "handlers.RequestLoanRequest": {
+            "type": "object",
+            "required": [
+                "amount",
+                "duration",
+                "reason"
+            ],
+            "properties": {
+                "amount": {
+                    "type": "integer",
+                    "example": 100000
+                },
+                "duration": {
+                    "type": "integer",
+                    "example": 12
+                },
+                "reason": {
+                    "type": "string",
+                    "example": "Home renovation"
+                }
+            }
+        },
+        "handlers.RequestLoanResponse": {
+            "type": "object",
+            "properties": {
+                "loan_id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "ok": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "handlers.SetInterestRateRequest": {
+            "type": "object",
+            "required": [
+                "duration_months",
+                "rate"
+            ],
+            "properties": {
+                "duration_months": {
+                    "type": "integer",
+                    "example": 12
+                },
+                "rate": {
+                    "type": "number",
+                    "example": 12.5
+                }
+            }
+        },
+        "handlers.UpdateLoanStatusRequest": {
+            "type": "object",
+            "required": [
+                "status"
+            ],
+            "properties": {
+                "status": {
+                    "type": "string",
+                    "example": "Approved"
+                }
+            }
+        },
+        "handlers.UpdateLoanStatusResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "example": "Loan approved successfully"
+                },
+                "ok": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "handlers.UserAuditReportResponse": {
+            "type": "object",
+            "properties": {
+                "blockchain_verified_transactions": {
+                    "type": "integer",
+                    "example": 25
+                },
+                "current_outstanding": {
+                    "type": "integer",
+                    "example": 50000
+                },
+                "current_savings_balance": {
+                    "type": "integer",
+                    "example": 80000
+                },
+                "current_shares_balance": {
+                    "type": "integer",
+                    "example": 50000
+                },
+                "joined_date": {
+                    "type": "string",
+                    "example": "2024-01-15T00:00:00Z"
+                },
+                "last_transaction_date": {
+                    "type": "string",
+                    "example": "2025-12-05T10:00:00Z"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "John Doe"
+                },
+                "phone_number": {
+                    "type": "string",
+                    "example": "+1234567890"
+                },
+                "role": {
+                    "type": "string",
+                    "example": "member"
+                },
+                "total_deposits": {
+                    "type": "integer",
+                    "example": 100000
+                },
+                "total_loans_amount": {
+                    "type": "integer",
+                    "example": 150000
+                },
+                "total_loans_repaid": {
+                    "type": "integer",
+                    "example": 100000
+                },
+                "total_loans_taken": {
+                    "type": "integer",
+                    "example": 3
+                },
+                "transaction_count": {
+                    "type": "integer",
+                    "example": 25
+                },
+                "user_id": {
+                    "type": "integer",
+                    "example": 45
+                },
+                "verification_rate": {
+                    "type": "number",
+                    "example": 100
+                }
+            }
+        },
+        "handlers.UserDetailResponse": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "example": "John Doe"
+                },
+                "phone_number": {
+                    "type": "string",
+                    "example": "+1234567890"
+                },
+                "savings_balance": {
+                    "type": "integer",
+                    "example": 50000
+                },
+                "shares_balance": {
+                    "type": "integer",
+                    "example": 25000
+                },
+                "user_id": {
+                    "type": "integer",
+                    "example": 1
+                }
+            }
+        },
+        "handlers.UserListItem": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "example": "John Doe"
+                },
+                "phone_number": {
+                    "type": "string",
+                    "example": "+1234567890"
+                },
+                "user_id": {
+                    "type": "integer",
+                    "example": 1
+                }
+            }
+        },
+        "handlers.UserListResponse": {
+            "type": "object",
+            "properties": {
+                "users": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/handlers.UserListItem"
+                    }
+                }
+            }
+        },
+        "handlers.VerifyRequest": {
+            "type": "object",
+            "required": [
+                "otp",
+                "phone_number",
+                "request_id"
+            ],
+            "properties": {
+                "otp": {
+                    "type": "string",
+                    "example": "123456"
+                },
+                "phone_number": {
+                    "type": "string",
+                    "example": "+1234567890"
+                },
+                "request_id": {
+                    "type": "integer",
+                    "example": 123
+                }
+            }
+        },
+        "handlers.VerifyResponse": {
+            "type": "object",
+            "properties": {
+                "ok": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "session": {
+                    "type": "string",
+                    "example": "abc123def456..."
+                }
+            }
+        },
+        "routes.HealthResponse": {
+            "type": "object",
+            "properties": {
+                "status": {
+                    "type": "string",
+                    "example": "healthy"
+                }
+            }
+        },
+        "routes.IndexResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "example": "API is running"
+                },
+                "version": {
+                    "type": "string",
+                    "example": "1.0.0"
+                }
+            }
+        }
+    },
+    "securityDefinitions": {
+        "SessionAuth": {
+            "type": "apiKey",
+            "name": "session_id",
+            "in": "cookie"
+        }
+    }
+}
