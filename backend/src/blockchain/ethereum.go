@@ -3,7 +3,6 @@ package blockchain
 import (
 	"context"
 	"crypto/ecdsa"
-	"encoding/hex"
 	"fmt"
 	"log"
 	"math/big"
@@ -26,14 +25,19 @@ var (
 	contractABI     abi.ABI
 )
 
-// PaymentAnchorABI is the ABI for the PaymentAnchor contract
-const PaymentAnchorABI = `[
+// TransactionLedgerABI is the ABI for the TransactionLedger contract
+const TransactionLedgerABI = `[
 	{
 		"inputs": [
 			{"internalType": "string", "name": "transactionId", "type": "string"},
-			{"internalType": "bytes32", "name": "paymentHash", "type": "bytes32"}
+			{"internalType": "string", "name": "txType", "type": "string"},
+			{"internalType": "string", "name": "fromAccount", "type": "string"},
+			{"internalType": "string", "name": "toAccount", "type": "string"},
+			{"internalType": "uint256", "name": "amount", "type": "uint256"},
+			{"internalType": "string", "name": "status", "type": "string"},
+			{"internalType": "string", "name": "description", "type": "string"}
 		],
-		"name": "anchorPayment",
+		"name": "recordTransaction",
 		"outputs": [],
 		"stateMutability": "nonpayable",
 		"type": "function"
@@ -42,10 +46,25 @@ const PaymentAnchorABI = `[
 		"inputs": [
 			{"internalType": "string", "name": "transactionId", "type": "string"}
 		],
-		"name": "getPaymentAnchor",
+		"name": "getTransaction",
 		"outputs": [
-			{"internalType": "bytes32", "name": "", "type": "bytes32"},
-			{"internalType": "uint256", "name": "", "type": "uint256"}
+			{
+				"components": [
+					{"internalType": "string", "name": "transactionId", "type": "string"},
+					{"internalType": "string", "name": "txType", "type": "string"},
+					{"internalType": "string", "name": "fromAccount", "type": "string"},
+					{"internalType": "string", "name": "toAccount", "type": "string"},
+					{"internalType": "uint256", "name": "amount", "type": "uint256"},
+					{"internalType": "string", "name": "status", "type": "string"},
+					{"internalType": "string", "name": "description", "type": "string"},
+					{"internalType": "uint256", "name": "timestamp", "type": "uint256"},
+					{"internalType": "uint256", "name": "blockNumber", "type": "uint256"},
+					{"internalType": "address", "name": "submittedBy", "type": "address"}
+				],
+				"internalType": "struct TransactionLedger.Transaction",
+				"name": "",
+				"type": "tuple"
+			}
 		],
 		"stateMutability": "view",
 		"type": "function"
@@ -53,11 +72,23 @@ const PaymentAnchorABI = `[
 	{
 		"inputs": [
 			{"internalType": "string", "name": "transactionId", "type": "string"},
-			{"internalType": "bytes32", "name": "paymentHash", "type": "bytes32"}
+			{"internalType": "string", "name": "txType", "type": "string"},
+			{"internalType": "string", "name": "fromAccount", "type": "string"},
+			{"internalType": "string", "name": "toAccount", "type": "string"},
+			{"internalType": "uint256", "name": "amount", "type": "uint256"}
 		],
-		"name": "verifyPayment",
+		"name": "verifyTransaction",
 		"outputs": [
 			{"internalType": "bool", "name": "", "type": "bool"}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "getTransactionCount",
+		"outputs": [
+			{"internalType": "uint256", "name": "", "type": "uint256"}
 		],
 		"stateMutability": "view",
 		"type": "function"
@@ -108,7 +139,7 @@ func InitEthereum() error {
 	}
 
 	// Load contract ABI
-	contractABI, err = abi.JSON(strings.NewReader(PaymentAnchorABI))
+	contractABI, err = abi.JSON(strings.NewReader(TransactionLedgerABI))
 	if err != nil {
 		return fmt.Errorf("failed to parse contract ABI: %w", err)
 	}
@@ -117,9 +148,17 @@ func InitEthereum() error {
 	return nil
 }
 
-// AnchorPaymentToSepolia anchors a payment hash to the Sepolia blockchain
+// RecordTransactionOnSepolia records full transaction data to the Sepolia blockchain
 // Returns the Ethereum transaction hash
-func AnchorPaymentToSepolia(transactionID string, paymentHash [32]byte) (string, error) {
+func RecordTransactionOnSepolia(
+	transactionID string,
+	txType string,
+	fromAccount string,
+	toAccount string,
+	amount int64,
+	status string,
+	description string,
+) (string, error) {
 	if client == nil {
 		return "", fmt.Errorf("ethereum client not initialized")
 	}
@@ -153,14 +192,25 @@ func AnchorPaymentToSepolia(transactionID string, paymentHash [32]byte) (string,
 		return "", fmt.Errorf("failed to get chain ID: %w", err)
 	}
 
+	// Convert amount to big.Int
+	amountBig := big.NewInt(amount)
+
 	// Pack the transaction data
-	data, err := contractABI.Pack("anchorPayment", transactionID, paymentHash)
+	data, err := contractABI.Pack("recordTransaction",
+		transactionID,
+		txType,
+		fromAccount,
+		toAccount,
+		amountBig,
+		status,
+		description,
+	)
 	if err != nil {
 		return "", fmt.Errorf("failed to pack transaction data: %w", err)
 	}
 
-	// Estimate gas limit
-	gasLimit := uint64(150000) // Conservative estimate for anchorPayment
+	// Estimate gas limit (higher because we're storing more data)
+	gasLimit := uint64(500000) // Increased for full data storage
 
 	// Create the transaction
 	tx := types.NewTx(&types.LegacyTx{
@@ -185,7 +235,7 @@ func AnchorPaymentToSepolia(transactionID string, paymentHash [32]byte) (string,
 	}
 
 	txHash := signedTx.Hash().Hex()
-	log.Printf("Payment anchored to Sepolia: TX=%s, TxID=%s", txHash, transactionID)
+	log.Printf("Transaction recorded on Sepolia: TX=%s, TxID=%s", txHash, transactionID)
 
 	// Wait for transaction receipt (optional - can be async)
 	go waitForReceipt(signedTx.Hash(), transactionID)
@@ -231,8 +281,14 @@ func waitForTransactionReceipt(ctx context.Context, txHash common.Hash) (*types.
 	}
 }
 
-// VerifyPaymentOnSepolia verifies a payment hash against the Sepolia blockchain
-func VerifyPaymentOnSepolia(transactionID string, expectedHash [32]byte) (bool, error) {
+// VerifyTransactionOnSepolia verifies full transaction data against the Sepolia blockchain
+func VerifyTransactionOnSepolia(
+	transactionID string,
+	txType string,
+	fromAccount string,
+	toAccount string,
+	amount int64,
+) (bool, error) {
 	if client == nil {
 		return false, fmt.Errorf("ethereum client not initialized")
 	}
@@ -240,8 +296,16 @@ func VerifyPaymentOnSepolia(transactionID string, expectedHash [32]byte) (bool, 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
+	amountBig := big.NewInt(amount)
+
 	// Pack the call data
-	data, err := contractABI.Pack("verifyPayment", transactionID, expectedHash)
+	data, err := contractABI.Pack("verifyTransaction",
+		transactionID,
+		txType,
+		fromAccount,
+		toAccount,
+		amountBig,
+	)
 	if err != nil {
 		return false, fmt.Errorf("failed to pack call data: %w", err)
 	}
@@ -258,7 +322,7 @@ func VerifyPaymentOnSepolia(transactionID string, expectedHash [32]byte) (bool, 
 
 	// Unpack the result
 	var isValid bool
-	err = contractABI.UnpackIntoInterface(&isValid, "verifyPayment", result)
+	err = contractABI.UnpackIntoInterface(&isValid, "verifyTransaction", result)
 	if err != nil {
 		return false, fmt.Errorf("failed to unpack result: %w", err)
 	}
@@ -266,19 +330,19 @@ func VerifyPaymentOnSepolia(transactionID string, expectedHash [32]byte) (bool, 
 	return isValid, nil
 }
 
-// GetPaymentAnchor retrieves the payment hash and timestamp from Sepolia
-func GetPaymentAnchor(transactionID string) (hash string, timestamp int64, err error) {
+// GetTransactionFromSepolia retrieves full transaction data from Sepolia
+func GetTransactionFromSepolia(transactionID string) (map[string]interface{}, error) {
 	if client == nil {
-		return "", 0, fmt.Errorf("ethereum client not initialized")
+		return nil, fmt.Errorf("ethereum client not initialized")
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	// Pack the call data
-	data, err := contractABI.Pack("getPaymentAnchor", transactionID)
+	data, err := contractABI.Pack("getTransaction", transactionID)
 	if err != nil {
-		return "", 0, fmt.Errorf("failed to pack call data: %w", err)
+		return nil, fmt.Errorf("failed to pack call data: %w", err)
 	}
 
 	// Call the contract
@@ -288,22 +352,39 @@ func GetPaymentAnchor(transactionID string) (hash string, timestamp int64, err e
 	}
 	result, err := client.CallContract(ctx, msg, nil)
 	if err != nil {
-		return "", 0, fmt.Errorf("failed to call contract: %w", err)
+		return nil, fmt.Errorf("failed to call contract: %w", err)
 	}
 
-	// Unpack the result
-	var results []interface{}
-	err = contractABI.UnpackIntoInterface(&results, "getPaymentAnchor", result)
+	// Unpack the result into a struct
+	type SepoliaTransaction struct {
+		TransactionId string
+		TxType        string
+		FromAccount   string
+		ToAccount     string
+		Amount        *big.Int
+		Status        string
+		Description   string
+		Timestamp     *big.Int
+		BlockNumber   *big.Int
+		SubmittedBy   common.Address
+	}
+
+	var tx SepoliaTransaction
+	err = contractABI.UnpackIntoInterface(&tx, "getTransaction", result)
 	if err != nil {
-		return "", 0, fmt.Errorf("failed to unpack result: %w", err)
+		return nil, fmt.Errorf("failed to unpack result: %w", err)
 	}
 
-	if len(results) != 2 {
-		return "", 0, fmt.Errorf("unexpected result length: %d", len(results))
-	}
-
-	paymentHash := results[0].([32]byte)
-	blockTimestamp := results[1].(*big.Int)
-
-	return hex.EncodeToString(paymentHash[:]), blockTimestamp.Int64(), nil
+	return map[string]interface{}{
+		"transaction_id": tx.TransactionId,
+		"type":           tx.TxType,
+		"from_account":   tx.FromAccount,
+		"to_account":     tx.ToAccount,
+		"amount":         tx.Amount.Int64(),
+		"status":         tx.Status,
+		"description":    tx.Description,
+		"timestamp":      tx.Timestamp.Int64(),
+		"block_number":   tx.BlockNumber.Uint64(),
+		"submitted_by":   tx.SubmittedBy.Hex(),
+	}, nil
 }

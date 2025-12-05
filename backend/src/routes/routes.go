@@ -77,4 +77,12 @@ func RegisterRoutes(e *echo.Echo) {
 	users := api.Group("/users", middleware.Auth, middleware.RequireManager)
 	users.GET("", handlers.ListUsers)
 	users.GET("/:id", handlers.GetUserByID)
+
+	audit := api.Group("/audit", middleware.Auth, middleware.RequireAuditor)
+	audit.GET("/summary", handlers.GetFinancialSummary)
+	audit.GET("/loans/outstanding", handlers.GetOutstandingLoans)
+	audit.GET("/transactions", handlers.GetAllTransactions)
+	audit.GET("/transactions/export", handlers.ExportTransactions)
+	audit.GET("/users/:id", handlers.GetUserAuditReport)
+	audit.GET("/blockchain/status", handlers.GetBlockchainStatus)
 }

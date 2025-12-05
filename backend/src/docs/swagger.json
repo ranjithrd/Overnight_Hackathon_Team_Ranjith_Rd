@@ -41,6 +41,310 @@
                 }
             }
         },
+        "/api/v1/audit/blockchain/status": {
+            "get": {
+                "security": [
+                    {
+                        "SessionAuth": []
+                    }
+                ],
+                "description": "Returns overall blockchain integrity and verification statistics",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "audit"
+                ],
+                "summary": "Get Blockchain Verification Status",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.BlockchainStatusResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/audit/loans/outstanding": {
+            "get": {
+                "security": [
+                    {
+                        "SessionAuth": []
+                    }
+                ],
+                "description": "Returns all currently outstanding loans with borrower details",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "audit"
+                ],
+                "summary": "Get Outstanding Loans",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Filter by status",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Sort field (amount, created_at, borrower_name)",
+                        "name": "sort",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Sort order (asc, desc)",
+                        "name": "order",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.OutstandingLoansResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/audit/summary": {
+            "get": {
+                "security": [
+                    {
+                        "SessionAuth": []
+                    }
+                ],
+                "description": "Returns high-level financial totals for audit purposes",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "audit"
+                ],
+                "summary": "Get Financial Summary",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.FinancialSummaryResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/audit/transactions": {
+            "get": {
+                "security": [
+                    {
+                        "SessionAuth": []
+                    }
+                ],
+                "description": "Returns all transactions for audit trail with filtering options",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "audit"
+                ],
+                "summary": "Get All Transactions",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Filter by transaction type",
+                        "name": "type",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter from date (ISO 8601)",
+                        "name": "start_date",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter to date (ISO 8601)",
+                        "name": "end_date",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Filter by user ID",
+                        "name": "user_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Show only blockchain-verified",
+                        "name": "verified_only",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Records per page (default 100)",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Pagination offset (default 0)",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.AuditTransactionsResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/audit/transactions/export": {
+            "get": {
+                "security": [
+                    {
+                        "SessionAuth": []
+                    }
+                ],
+                "description": "Exports all transactions to Excel or CSV format with blockchain verification status",
+                "produces": [
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    "text/csv"
+                ],
+                "tags": [
+                    "audit"
+                ],
+                "summary": "Export Transactions to Excel/CSV",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Filter by transaction type",
+                        "name": "type",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter from date (ISO 8601)",
+                        "name": "start_date",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter to date (ISO 8601)",
+                        "name": "end_date",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Filter by user ID",
+                        "name": "user_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Export format (excel, csv)",
+                        "name": "format",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Excel or CSV file",
+                        "schema": {
+                            "type": "file"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/audit/users/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "SessionAuth": []
+                    }
+                ],
+                "description": "Returns detailed audit report for a specific user",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "audit"
+                ],
+                "summary": "Get User Audit Report",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "User ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.UserAuditReportResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/auth/login": {
             "post": {
                 "description": "Authenticate with phone number and password",
@@ -1002,6 +1306,131 @@
                 }
             }
         },
+        "handlers.AuditTransactionItem": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "integer",
+                    "example": 10000
+                },
+                "blockchain_block_number": {
+                    "type": "integer",
+                    "example": 12345
+                },
+                "blockchain_hash": {
+                    "type": "string",
+                    "example": "0xdef456..."
+                },
+                "blockchain_verified": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "loan_id": {
+                    "type": "integer",
+                    "example": 123
+                },
+                "reference": {
+                    "type": "string",
+                    "example": "BANK-TX-12345"
+                },
+                "timestamp": {
+                    "type": "string",
+                    "example": "2025-12-01T14:30:00Z"
+                },
+                "transaction_id": {
+                    "type": "string",
+                    "example": "TXN-1001"
+                },
+                "transaction_type": {
+                    "type": "string",
+                    "example": "deposit"
+                },
+                "user_id": {
+                    "type": "integer",
+                    "example": 45
+                },
+                "user_name": {
+                    "type": "string",
+                    "example": "John Doe"
+                },
+                "user_phone": {
+                    "type": "string",
+                    "example": "+1234567890"
+                },
+                "verification_timestamp": {
+                    "type": "string",
+                    "example": "2025-12-01T14:30:05Z"
+                }
+            }
+        },
+        "handlers.AuditTransactionsResponse": {
+            "type": "object",
+            "properties": {
+                "blockchain_verified_count": {
+                    "type": "integer",
+                    "example": 3
+                },
+                "blockchain_verified_percentage": {
+                    "type": "number",
+                    "example": 100
+                },
+                "total_amount": {
+                    "type": "integer",
+                    "example": 65000
+                },
+                "total_count": {
+                    "type": "integer",
+                    "example": 3
+                },
+                "transactions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/handlers.AuditTransactionItem"
+                    }
+                }
+            }
+        },
+        "handlers.BlockchainStatusResponse": {
+            "type": "object",
+            "properties": {
+                "blockchain_health": {
+                    "type": "string",
+                    "example": "healthy"
+                },
+                "blockchain_integrity": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "last_block_number": {
+                    "type": "integer",
+                    "example": 15000
+                },
+                "last_verification_timestamp": {
+                    "type": "string",
+                    "example": "2025-12-05T11:45:00Z"
+                },
+                "pending_verifications": {
+                    "type": "integer",
+                    "example": 0
+                },
+                "total_transactions": {
+                    "type": "integer",
+                    "example": 1500
+                },
+                "unverified_transactions": {
+                    "type": "integer",
+                    "example": 0
+                },
+                "verification_rate": {
+                    "type": "number",
+                    "example": 100
+                },
+                "verified_transactions": {
+                    "type": "integer",
+                    "example": 1500
+                }
+            }
+        },
         "handlers.BorrowerInfo": {
             "type": "object",
             "properties": {
@@ -1025,6 +1454,51 @@
                 "error": {
                     "type": "string",
                     "example": "Invalid request"
+                }
+            }
+        },
+        "handlers.FinancialSummaryResponse": {
+            "type": "object",
+            "properties": {
+                "blockchain_integrity": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "last_blockchain_verification": {
+                    "type": "string",
+                    "example": "2025-12-05T10:30:00Z"
+                },
+                "total_assets": {
+                    "type": "integer",
+                    "example": 1500000
+                },
+                "total_deposits": {
+                    "type": "integer",
+                    "example": 1000000
+                },
+                "total_interest_earned": {
+                    "type": "integer",
+                    "example": 75000
+                },
+                "total_loans_disbursed": {
+                    "type": "integer",
+                    "example": 500000
+                },
+                "total_loans_outstanding": {
+                    "type": "integer",
+                    "example": 300000
+                },
+                "total_loans_repaid": {
+                    "type": "integer",
+                    "example": 200000
+                },
+                "total_members": {
+                    "type": "integer",
+                    "example": 150
+                },
+                "total_profit": {
+                    "type": "integer",
+                    "example": 50000
                 }
             }
         },
@@ -1333,6 +1807,94 @@
                 }
             }
         },
+        "handlers.OutstandingLoanItem": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "integer",
+                    "example": 50000
+                },
+                "amount_outstanding": {
+                    "type": "integer",
+                    "example": 42000
+                },
+                "amount_repaid": {
+                    "type": "integer",
+                    "example": 10000
+                },
+                "blockchain_hash": {
+                    "type": "string",
+                    "example": "0xabc123..."
+                },
+                "blockchain_verified": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "borrower_id": {
+                    "type": "integer",
+                    "example": 45
+                },
+                "borrower_name": {
+                    "type": "string",
+                    "example": "John Doe"
+                },
+                "borrower_phone": {
+                    "type": "string",
+                    "example": "+1234567890"
+                },
+                "disbursed_date": {
+                    "type": "string",
+                    "example": "2025-11-01T00:00:00Z"
+                },
+                "duration_months": {
+                    "type": "integer",
+                    "example": 12
+                },
+                "expected_repayment_date": {
+                    "type": "string",
+                    "example": "2026-11-01T00:00:00Z"
+                },
+                "interest_rate": {
+                    "type": "number",
+                    "example": 4
+                },
+                "loan_id": {
+                    "type": "integer",
+                    "example": 123
+                },
+                "reason": {
+                    "type": "string",
+                    "example": "Home renovation"
+                },
+                "status": {
+                    "type": "string",
+                    "example": "Approved"
+                },
+                "total_repayment": {
+                    "type": "integer",
+                    "example": 52000
+                }
+            }
+        },
+        "handlers.OutstandingLoansResponse": {
+            "type": "object",
+            "properties": {
+                "outstanding_loans": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/handlers.OutstandingLoanItem"
+                    }
+                },
+                "total_count": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "total_outstanding_amount": {
+                    "type": "integer",
+                    "example": 42000
+                }
+            }
+        },
         "handlers.RequestLoanRequest": {
             "type": "object",
             "required": [
@@ -1407,6 +1969,75 @@
                 "ok": {
                     "type": "boolean",
                     "example": true
+                }
+            }
+        },
+        "handlers.UserAuditReportResponse": {
+            "type": "object",
+            "properties": {
+                "blockchain_verified_transactions": {
+                    "type": "integer",
+                    "example": 25
+                },
+                "current_outstanding": {
+                    "type": "integer",
+                    "example": 50000
+                },
+                "current_savings_balance": {
+                    "type": "integer",
+                    "example": 80000
+                },
+                "current_shares_balance": {
+                    "type": "integer",
+                    "example": 50000
+                },
+                "joined_date": {
+                    "type": "string",
+                    "example": "2024-01-15T00:00:00Z"
+                },
+                "last_transaction_date": {
+                    "type": "string",
+                    "example": "2025-12-05T10:00:00Z"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "John Doe"
+                },
+                "phone_number": {
+                    "type": "string",
+                    "example": "+1234567890"
+                },
+                "role": {
+                    "type": "string",
+                    "example": "member"
+                },
+                "total_deposits": {
+                    "type": "integer",
+                    "example": 100000
+                },
+                "total_loans_amount": {
+                    "type": "integer",
+                    "example": 150000
+                },
+                "total_loans_repaid": {
+                    "type": "integer",
+                    "example": 100000
+                },
+                "total_loans_taken": {
+                    "type": "integer",
+                    "example": 3
+                },
+                "transaction_count": {
+                    "type": "integer",
+                    "example": 25
+                },
+                "user_id": {
+                    "type": "integer",
+                    "example": 45
+                },
+                "verification_rate": {
+                    "type": "number",
+                    "example": 100
                 }
             }
         },

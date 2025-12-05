@@ -1,7 +1,7 @@
 const hre = require("hardhat");
 
 async function main() {
-  console.log("Deploying PaymentAnchor contract to Sepolia...");
+  console.log("Deploying TransactionLedger contract to Sepolia...");
   console.log("");
   
   const [deployer] = await hre.ethers.getSigners();
@@ -9,17 +9,20 @@ async function main() {
   console.log("Account balance:", (await deployer.provider.getBalance(deployer.address)).toString());
   console.log("");
   
-  const PaymentAnchor = await hre.ethers.getContractFactory("PaymentAnchor");
-  const paymentAnchor = await PaymentAnchor.deploy();
+  const TransactionLedger = await hre.ethers.getContractFactory("TransactionLedger");
+  const transactionLedger = await TransactionLedger.deploy();
   
-  await paymentAnchor.deployed();
+  await transactionLedger.deployed();
   
-  console.log("✓ PaymentAnchor deployed to:", paymentAnchor.address);
+  console.log("✓ TransactionLedger deployed to:", transactionLedger.address);
   console.log("");
   console.log("📋 Add this to your .env file:");
-  console.log(`CONTRACT_ADDRESS=${paymentAnchor.address}`);
+  console.log(`CONTRACT_ADDRESS=${transactionLedger.address}`);
   console.log("");
   console.log("🎉 Deployment complete!");
+  console.log("");
+  console.log("⚠️  IMPORTANT: Update your existing .env with the new contract address");
+  console.log("   This is a NEW contract with full data storage capabilities");
 }
 
 main().catch((error) => {

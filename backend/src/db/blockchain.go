@@ -73,22 +73,22 @@ func CreateBlockForTransaction(txID string) (*Block, error) {
 	blockHash := computeBlockHash(newBlock)
 	newBlock.BlockHash = blockHash
 
-	// Anchor to Sepolia blockchain
-	txHashBytes, err := hex.DecodeString(txHash)
+	// Record full transaction to Sepolia blockchain (source of truth)
+	ethTxHash, err := blockchain.RecordTransactionOnSepolia(
+		transaction.TransactionID,
+		transaction.Type,
+		transaction.FromAccount,
+		transaction.ToAccount,
+		int64(transaction.Amount),
+		transaction.Status,
+		transaction.Description,
+	)
 	if err != nil {
-		log.Printf("WARNING: Failed to decode transaction hash for Sepolia: %v", err)
+		log.Printf("WARNING: Failed to record on Sepolia: %v", err)
+		// Continue without Sepolia - graceful degradation
 	} else {
-		var hash32 [32]byte
-		copy(hash32[:], txHashBytes)
-
-		ethTxHash, err := blockchain.AnchorPaymentToSepolia(txID, hash32)
-		if err != nil {
-			log.Printf("WARNING: Failed to anchor to Sepolia: %v", err)
-			// Continue without Sepolia anchoring - don't fail the entire operation
-		} else {
-			newBlock.EthereumTxHash = ethTxHash
-			log.Printf("Payment anchored to Sepolia: %s", ethTxHash)
-		}
+		newBlock.EthereumTxHash = ethTxHash
+		log.Printf("Transaction recorded on Sepolia: %s", ethTxHash)
 	}
 
 	if err := DB.Create(newBlock).Error; err != nil {
@@ -164,23 +164,26 @@ func VerifyEntireChain() (bool, error) {
 
 		// Verify against Sepolia if Ethereum tx hash exists
 		if block.EthereumTxHash != "" && block.TransactionID != "GENESIS" {
-			txHashBytes, err := hex.DecodeString(block.TransactionHash)
-			if err != nil {
-				log.Printf("WARNING: Failed to decode hash for block #%d: %v", block.BlockNumber, err)
+			var transaction Transaction
+			if err := DB.Where("transaction_id = ?", block.TransactionID).First(&transaction).Error; err != nil {
+				log.Printf("WARNING: Transaction not found for block #%d: %v", block.BlockNumber, err)
 				continue
 			}
 
-			var hash32 [32]byte
-			copy(hash32[:], txHashBytes)
-
-			sepoliaValid, err := blockchain.VerifyPaymentOnSepolia(block.TransactionID, hash32)
+			sepoliaValid, err := blockchain.VerifyTransactionOnSepolia(
+				transaction.TransactionID,
+				transaction.Type,
+				transaction.FromAccount,
+				transaction.ToAccount,
+				int64(transaction.Amount),
+			)
 			if err != nil {
 				log.Printf("WARNING: Failed to verify block #%d on Sepolia: %v", block.BlockNumber, err)
 				continue
 			}
 
 			if !sepoliaValid {
-				return false, fmt.Errorf("block #%d hash mismatch on Sepolia", block.BlockNumber)
+				return false, fmt.Errorf("block #%d data mismatch on Sepolia - TAMPERING DETECTED", block.BlockNumber)
 			}
 		}
 	}

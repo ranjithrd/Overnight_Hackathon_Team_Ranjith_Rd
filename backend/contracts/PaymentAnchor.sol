@@ -2,64 +2,156 @@
 pragma solidity ^0.8.0;
 
 /**
- * @title PaymentAnchor
- * @dev Smart contract for anchoring payment hashes to Sepolia blockchain
- * Each payment in the cooperative banking system gets its hash recorded on-chain
+ * @title TransactionLedger
+ * @dev Full decentralized ledger for cooperative banking system
+ * ALL transaction data is stored on Sepolia - no central database needed
  */
-contract PaymentAnchor {
-    // Event emitted when a payment is anchored
-    event PaymentAnchored(
-        string indexed transactionId,
-        bytes32 paymentHash,
-        uint256 timestamp,
-        address indexed anchoredBy
-    );
+contract TransactionLedger {
+    struct Transaction {
+        string transactionId;
+        string txType;          // payment, deposit, loan_status_change, etc.
+        string fromAccount;
+        string toAccount;
+        uint256 amount;
+        string status;
+        string description;
+        uint256 timestamp;
+        uint256 blockNumber;
+        address submittedBy;
+    }
 
-    // Mapping from transaction ID to payment hash
-    mapping(string => bytes32) public paymentHashes;
+    // Full transaction data stored on-chain
+    mapping(string => Transaction) public transactions;
     
-    // Mapping from transaction ID to timestamp
-    mapping(string => uint256) public anchorTimestamps;
+    // Track all transaction IDs for enumeration
+    string[] public transactionIds;
+    
+    // Mapping to check if transaction exists
+    mapping(string => bool) public transactionExists;
     
     // Owner of the contract
     address public owner;
+
+    // Event emitted when transaction is recorded (indexed for fast queries)
+    event TransactionRecorded(
+        string indexed transactionId,
+        string txType,
+        string fromAccount,
+        string toAccount,
+        uint256 amount,
+        uint256 timestamp,
+        address indexed submittedBy
+    );
 
     constructor() {
         owner = msg.sender;
     }
 
     /**
-     * @dev Anchor a payment hash to the blockchain
-     * @param transactionId The unique transaction ID from the banking system
-     * @param paymentHash The SHA-256 hash of the payment data
+     * @dev Record a complete transaction on-chain
+     * @param transactionId Unique transaction ID
+     * @param txType Type of transaction (payment, deposit, etc.)
+     * @param fromAccount Source account
+     * @param toAccount Destination account
+     * @param amount Transaction amount in smallest unit
+     * @param status Transaction status
+     * @param description Human-readable description
      */
-    function anchorPayment(string memory transactionId, bytes32 paymentHash) public {
+    function recordTransaction(
+        string memory transactionId,
+        string memory txType,
+        string memory fromAccount,
+        string memory toAccount,
+        uint256 amount,
+        string memory status,
+        string memory description
+    ) public {
         require(bytes(transactionId).length > 0, "Transaction ID cannot be empty");
-        require(paymentHash != bytes32(0), "Payment hash cannot be zero");
-        require(paymentHashes[transactionId] == bytes32(0), "Payment already anchored");
+        require(!transactionExists[transactionId], "Transaction already exists");
 
-        paymentHashes[transactionId] = paymentHash;
-        anchorTimestamps[transactionId] = block.timestamp;
+        Transaction memory newTx = Transaction({
+            transactionId: transactionId,
+            txType: txType,
+            fromAccount: fromAccount,
+            toAccount: toAccount,
+            amount: amount,
+            status: status,
+            description: description,
+            timestamp: block.timestamp,
+            blockNumber: block.number,
+            submittedBy: msg.sender
+        });
 
-        emit PaymentAnchored(transactionId, paymentHash, block.timestamp, msg.sender);
+        transactions[transactionId] = newTx;
+        transactionIds.push(transactionId);
+        transactionExists[transactionId] = true;
+
+        emit TransactionRecorded(
+            transactionId,
+            txType,
+            fromAccount,
+            toAccount,
+            amount,
+            block.timestamp,
+            msg.sender
+        );
     }
 
     /**
-     * @dev Verify a payment hash matches what's stored on-chain
-     * @param transactionId The transaction ID to verify
-     * @param paymentHash The hash to verify against
-     * @return bool True if the hash matches
-     */
-    function verifyPayment(string memory transactionId, bytes32 paymentHash) public view returns (bool) {
-        return paymentHashes[transactionId] == paymentHash;
-    }
-
-    /**
-     * @dev Get the anchored hash for a transaction
+     * @dev Get full transaction details from blockchain
      * @param transactionId The transaction ID to look up
-     * @return The payment hash and timestamp
+     * @return Complete transaction data
      */
-    function getPaymentAnchor(string memory transactionId) public view returns (bytes32, uint256) {
-        return (paymentHashes[transactionId], anchorTimestamps[transactionId]);
+    function getTransaction(string memory transactionId) public view returns (Transaction memory) {
+        require(transactionExists[transactionId], "Transaction does not exist");
+        return transactions[transactionId];
+    }
+
+    /**
+     * @dev Get total number of transactions
+     * @return Total count
+     */
+    function getTransactionCount() public view returns (uint256) {
+        return transactionIds.length;
+    }
+
+    /**
+     * @dev Get transaction ID by index
+     * @param index Index in the array
+     * @return Transaction ID
+     */
+    function getTransactionIdByIndex(uint256 index) public view returns (string memory) {
+        require(index < transactionIds.length, "Index out of bounds");
+        return transactionIds[index];
+    }
+
+    /**
+     * @dev Verify transaction data matches on-chain record
+     * @param transactionId Transaction ID to verify
+     * @param txType Expected transaction type
+     * @param fromAccount Expected source account
+     * @param toAccount Expected destination account
+     * @param amount Expected amount
+     * @return True if all fields match
+     */
+    function verifyTransaction(
+        string memory transactionId,
+        string memory txType,
+        string memory fromAccount,
+        string memory toAccount,
+        uint256 amount
+    ) public view returns (bool) {
+        if (!transactionExists[transactionId]) {
+            return false;
+        }
+
+        Transaction memory tx = transactions[transactionId];
+        
+        return (
+            keccak256(bytes(tx.txType)) == keccak256(bytes(txType)) &&
+            keccak256(bytes(tx.fromAccount)) == keccak256(bytes(fromAccount)) &&
+            keccak256(bytes(tx.toAccount)) == keccak256(bytes(toAccount)) &&
+            tx.amount == amount
+        );
     }
 }
